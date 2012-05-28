@@ -13,9 +13,9 @@ class line():
         self.m = (p2.y - p1.y)/(p2.x - p1.x)
         self.n = p2.y - p2.x * self.m
         self.minx = np.min([p1.x, p2.x])
-        self.miny = np.min([p1.y, p2.y])
+        #~ self.miny = np.min([p1.y, p2.y])
         self.maxx = np.max([p1.x, p2.x])
-        self.maxy = np.max([p1.y, p2.y]) 
+        #~ self.maxy = np.max([p1.y, p2.y]) 
 
     def __repr__(self):
         return "y = %s * x + %s"% (self.m, self.m)
@@ -26,7 +26,7 @@ class line():
     def isxin(self, x):
         return self.minx <= x <= self.maxx
 
-    def y_of(self, x):
+    def y(self, x):
         if self.isxin(x):
             return self.m * x + self.n
         else:
@@ -38,7 +38,7 @@ class line():
         if x2 == None:
             x2 = self.maxx 
         if self.isxin(x1) and self.isxin(x2):
-            return (self.y_of(x1) + self.y_of(x1)) * (x2 - x1)/2.0
+            return (self.y(x1) + self.y(x1)) * (x2 - x1)/2.0
         else:
             raise ValueError, "x values out of range"
 
@@ -66,7 +66,7 @@ def main():
     print c
     e = line(b, d)
     h = line(d, g)
-    print e.y_of(2.5)
+    print e.y(2.5)
     f = polyline([c, e])
     print f.lines
     print c.isxin(5)
