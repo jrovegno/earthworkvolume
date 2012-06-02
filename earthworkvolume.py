@@ -13,9 +13,9 @@ class line():
         self.m = (p2.y - p1.y)/(p2.x - p1.x)
         self.n = p2.y - p2.x * self.m
         self.minx = np.min([p1.x, p2.x])
-        #~ self.miny = np.min([p1.y, p2.y])
+        self.miny = np.min([p1.y, p2.y])
         self.maxx = np.max([p1.x, p2.x])
-        #~ self.maxy = np.max([p1.y, p2.y]) 
+        self.maxy = np.max([p1.y, p2.y]) 
 
     def __repr__(self):
         return "y = %s * x + %s"% (self.m, self.m)
@@ -26,9 +26,18 @@ class line():
     def isxin(self, x):
         return self.minx <= x <= self.maxx
 
+    def isyin(self, y):
+        return self.miny <= y <= self.maxy
+
     def y(self, x):
         if self.isxin(x):
             return self.m * x + self.n
+        else:
+            return None
+
+    def x(self, y):
+        if self.isyin(y):
+            return  (y - self.n) / self.m
         else:
             return None
 
@@ -66,7 +75,9 @@ def main():
     print c
     e = line(b, d)
     h = line(d, g)
-    print e.y(2.5)
+    yv = e.y(2.5)
+    print yv
+    print e.x(yv)
     f = polyline([c, e])
     print f.lines
     print c.isxin(5)
