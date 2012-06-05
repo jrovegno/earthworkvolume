@@ -1,91 +1,133 @@
 import numpy as np
 
 class point():
+    """
+    >>> a = point(0, 0)
+    >>> print 'point is %s where x=%s and y=%s'%(a, a.x, a.y)
+    point is (0.0, 0.0) where x=0.0 and y=0.0
+    """
     def __init__(self, x, y):
         self.x = float(x)
         self.y = float(y)
 
-class line():
-    def __init__(self, p1, p2):
-        #~ self.points = [p1, p2]
-        if p2.x == p1.x:
-            raise ValueError, "x1 must be different of x2"
-        self.m = (p2.y - p1.y)/(p2.x - p1.x)
-        self.n = p2.y - p2.x * self.m
-        self.minx = np.min([p1.x, p2.x])
-        self.miny = np.min([p1.y, p2.y])
-        self.maxx = np.max([p1.x, p2.x])
-        self.maxy = np.max([p1.y, p2.y]) 
-
     def __repr__(self):
-        return "y = %s * x + %s"% (self.m, self.m)
+        return "(%s, %s)"% (self.x, self.y)
 
     def __str__(self):
-        return "y = %s * x + %s"% (self.m, self.m)
+        return "(%s, %s)"% (self.x, self.y)
 
-    def isxin(self, x):
-        return self.minx <= x <= self.maxx
+# TODO: Not implement limits in line do it in polyline
+class line():
+    """
+    >>> a = point(0, 0)
+    >>> b = point(3, 3)
+    >>> l1 = line(a, b)
+    >>> print '%s, m=%s, n=%s'%(l1, l1.m, l1.n) 
+    y = 1.0 * x + 0.0, m=1.0, n=0.0
+    >>> d = point(4, 5)
+    >>> g = point(10, 2)
+    >>> l2 = line(d, g)
+    >>> print l1 - l2
+    y = 1.5 * x + -7.0
+    >>> l2.y(4.0) == 5.0
+    True
+    >>> l2.x(2) == 10.0
+    True
+    >>> print line(m=0.5,n=2)
+    y = 0.5 * x + 2
+    """
+    def __init__(self, *args, **kargs):
+        # Points param
+        if args:
+            p1 = args[0]
+            p2 = args[1]
+            if p2.x == p1.x:
+                raise ValueError, "x1 must be different of x2"
+            self.m = (p2.y - p1.y)/(p2.x - p1.x)
+            self.n = p2.y - p2.x * self.m
+        elif kargs:
+            self.m = kargs['m']
+            self.n = kargs['n']
+        else:
+            raise ValueError, "You must define 2 points or m,n as argument"
 
-    def isyin(self, y):
-        return self.miny <= y <= self.maxy
+    def __repr__(self):
+        return "y = %s * x + %s"% (self.m, self.n)
+
+    def __str__(self):
+        return "y = %s * x + %s"% (self.m, self.n)
+
+    def __sub__(self, other):
+        return line(m=self.m - other.m, n=self.n - other.n)
 
     def y(self, x):
-        if self.isxin(x):
-            return self.m * x + self.n
-        else:
-            return None
+        return self.m * x + self.n
 
     def x(self, y):
-        if self.isyin(y):
-            return  (y - self.n) / self.m
-        else:
-            return None
-
-    def area(self, x1=None, x2=None):
-        if x1 == None:
-            x1 = self.minx
-        if x2 == None:
-            x2 = self.maxx 
-        if self.isxin(x1) and self.isxin(x2):
-            return (self.y(x1) + self.y(x1)) * (x2 - x1)/2.0
-        else:
-            raise ValueError, "x values out of range"
-
+        return  (y - self.n) / self.m
 
 class polyline():
-    def __init__(self, lines=None):
-        if lines == None:
-            self.lines = []
-        else:
-            self.lines = lines
+    """
+    >>> lx = [0.0,1.0,2.0,3.0]
+    >>> ly = [0.0,1.0,0.0,-1.0]
+    >>> f = polyline(lx, ly)
+    >>> print f.lines
+    [y = 1.0 * x + 0.0, y = -1.0 * x + 2.0, y = -1.0 * x + 2.0]
+    >>> print f.points
+    [(0.0, 0.0), (1.0, 1.0), (2.0, 0.0), (3.0, -1.0)]
+    """
+    def __init__(self, lx, ly):
+        self.lines = []
+        self.points = []
+        if not isinstance(lx,list):
+            raise ValueError, "lx is not a list of x's coordinates of the polyline"
+        if not isinstance(lx,list) or not isinstance(ly,list):
+            raise ValueError, "ly is not a list of y's coordinates of the polyline"
+        if len(lx) != len(ly):
+            raise ValueError, "length of len(lx) != len(ly)"
+        
+        for i in range(len(lx)):
+            self.points.append(point(lx[i], ly[i]))
+        for j in range(len(self.points) - 1):
+            self.lines.append(line(self.points[j], self.points[j+1]))
 
-    def addline(self,ln):
+    #~ def isxin(self, i, x):
+        #~ return self.minx <= x <= self.maxx
+
+    #~ def isyin(self, y):
+        #~ return self.miny <= y <= self.maxy
+
+    def addline(self, p1, p2):
         # addline at last
         self.lines.append(ln)
 
+    #~ def area(self, x1, x2):
+        #~ if x1 < self.points[0].x:
+            #~ raise ValueError, "x values out of range"
+        #~ elif x2 > self.points[-1].x:
+            #~ raise ValueError, "x values out of range"
+        #~ else:
+            #~ area = 0.0
+            #~ for j in range(len(self.points) - 1):
+                #~ if self.points[i].x <= x1 <= self.points[].x:
+                    #~ pass
+                #~ self.lines.append(line(self.points[j], self.points[j+1]))
+            #~ for p in self.points:
+                #~ self.isxin(x1) and self.isxin(x2):
+            #~ return (self.y(x1) + self.y(x1)) * (x2 - x1)/2.0
+        #~ else:
+            #~ raise ValueError, "x values out of range"
 
 def main():
+    #~ print c.isxin(5)
+    #~ f.addline(h)
+    #~ print f.lines
+    #~ print e.area(2.2, 3)
+    #~ print c.area()
     print 'ok'
-    a = point(0, 1)
-    b = point(2, 3)
-    d = point(3, 5)
-    g = point(10, 2)
-    print a.x , a.y
-    c = line(a, b)
-    print c
-    e = line(b, d)
-    h = line(d, g)
-    yv = e.y(2.5)
-    print yv
-    print e.x(yv)
-    f = polyline([c, e])
-    print f.lines
-    print c.isxin(5)
-    f.addline(h)
-    print f.lines
-    print e.area(2.2, 3)
-    print c.area()
 
 if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
     main()
 
