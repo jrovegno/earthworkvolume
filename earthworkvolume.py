@@ -75,6 +75,22 @@ class polyline():
     [y = 1.0 * x + 0.0, y = -1.0 * x + 2.0, y = -1.0 * x + 2.0]
     >>> print f.points
     [(0.0, 0.0), (1.0, 1.0), (2.0, 0.0), (3.0, -1.0)]
+    >>> f.y(0.0),f.y(2.0),f.y(3.0)
+    (0.0, 0.0, -1.0)
+    >>> f.y(0.5),f.y(1.5),f.y(2.5)
+    (0.5, 0.5, -0.5)
+    >>> f.y(-0.5)
+    Traceback (most recent call last):
+    ...
+    ValueError: x out of range in polyline domain
+    >>> f.y(3.5)
+    Traceback (most recent call last):
+    ...
+    ValueError: x out of range in polyline domain
+    >>> f.x(0.0),f.x(0.0,1),f.x(-1.0)
+    (0.0, 2.0, 3.0)
+    >>> f.x(0.5),f.x(0.5,1,2),f.x(-0.5)
+    (0.5, 1.5, 2.5)
     """
     def __init__(self, lx, ly):
         self.lines = []
@@ -85,17 +101,42 @@ class polyline():
             raise ValueError, "ly is not a list of y's coordinates of the polyline"
         if len(lx) != len(ly):
             raise ValueError, "length of len(lx) != len(ly)"
-        
         for i in range(len(lx)):
             self.points.append(point(lx[i], ly[i]))
         for j in range(len(self.points) - 1):
             self.lines.append(line(self.points[j], self.points[j+1]))
 
-    #~ def isxin(self, i, x):
-        #~ return self.minx <= x <= self.maxx
+    def y(self, x, j=None, n=None):
+        if j == None:
+            j = 0
+        if n == None:
+            n = len(self.points) - 1
+        value = None
+        while j < n:
+            if self.points[j].x <= x <= self.points[j+1].x:
+                value = self.lines[j].y(x)
+                break
+            j += 1
+        if value == None:
+            raise ValueError, "x out of range in polyline domain"
+        return value
 
-    #~ def isyin(self, y):
-        #~ return self.miny <= y <= self.maxy
+    def x(self, y, j=None, n=None):
+        if j == None:
+            j = 0
+        if n == None:
+            n = len(self.points) - 1
+        value = None
+        while j < n:
+            ymin = min(self.points[j].y,self.points[j+1].y)
+            ymax = max(self.points[j].y,self.points[j+1].y)
+            if ymin <= y <= ymax:
+                value = self.lines[j].x(y)
+                break
+            j += 1
+        if value == None:
+            raise ValueError, "y out of range in polyline domain"
+        return value
 
     def addline(self, p1, p2):
         # addline at last
