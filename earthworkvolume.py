@@ -14,7 +14,7 @@ class point():
     def __str__(self):
         return "(%s, %s)"% (self.x, self.y)
 
-# TODO: Not implement limits in line do it in polyline
+
 class line():
     """
     >>> a = point(0, 0)
@@ -37,7 +37,6 @@ class line():
     (0.5, 6.75)
     """
     def __init__(self, *args, **kargs):
-        # Points param
         if args:
             p1 = args[0]
             p2 = args[1]
@@ -68,6 +67,7 @@ class line():
 
     def area(self, x1, x2):
         return  (self.y(x1) + self.y(x2))/2.0 * (x2 - x1)
+
 
 class polyline():
     """
@@ -180,8 +180,8 @@ class polyline():
         return value
 
     def addline(self, p1, p2):
-        # addline at last
-        self.lines.append(ln)
+        # TODO addline at last
+        pass
 
 def main():
     pass
