@@ -1,5 +1,3 @@
-import numpy as np
-
 class point():
     """
     >>> a = point(0, 0)
@@ -35,6 +33,8 @@ class line():
     True
     >>> print line(m=0.5,n=2)
     y = 0.5 * x + 2
+    >>> l1.area(0.0, 1.0), l2.area(0.0, 1.0)
+    (0.5, 6.75)
     """
     def __init__(self, *args, **kargs):
         # Points param
@@ -66,6 +66,9 @@ class line():
     def x(self, y):
         return  (y - self.n) / self.m
 
+    def area(self, x1, x2):
+        return  (self.y(x1) + self.y(x2))/2.0 * (x2 - x1)
+
 class polyline():
     """
     >>> lx = [0.0,1.0,2.0,3.0]
@@ -75,9 +78,9 @@ class polyline():
     [y = 1.0 * x + 0.0, y = -1.0 * x + 2.0, y = -1.0 * x + 2.0]
     >>> print f.points
     [(0.0, 0.0), (1.0, 1.0), (2.0, 0.0), (3.0, -1.0)]
-    >>> f.y(0.0),f.y(2.0),f.y(3.0)
+    >>> f.y(0.0), f.y(2.0), f.y(3.0)
     (0.0, 0.0, -1.0)
-    >>> f.y(0.5),f.y(1.5),f.y(2.5)
+    >>> f.y(0.5), f.y(1.5), f.y(2.5)
     (0.5, 0.5, -0.5)
     >>> f.y(-0.5)
     Traceback (most recent call last):
@@ -87,10 +90,14 @@ class polyline():
     Traceback (most recent call last):
     ...
     ValueError: x out of range in polyline domain
-    >>> f.x(0.0),f.x(0.0,1),f.x(-1.0)
+    >>> f.x(0.0), f.x(0.0,1), f.x(-1.0)
     (0.0, 2.0, 3.0)
-    >>> f.x(0.5),f.x(0.5,1,2),f.x(-0.5)
+    >>> f.x(0.5), f.x(0.5, 1, 2), f.x(-0.5)
     (0.5, 1.5, 2.5)
+    >>> f.xin(0.0, 0), f.xin(0.0, 1), f.xin(1.9999999999999999, 2)
+    (True, False, True)
+    >>> f.area(0.0,1.0), f.area(0.0,2.0), f.area(0.0,3.0)
+    (0.5, 1.0, 0.5)
     """
     def __init__(self, lx, ly):
         self.lines = []
@@ -106,14 +113,22 @@ class polyline():
         for j in range(len(self.points) - 1):
             self.lines.append(line(self.points[j], self.points[j+1]))
 
+    def xin(self, x, j):
+        return self.points[j].x <= x <= self.points[j+1].x
+
+    def yin(self, y, j):
+        ymin = min(self.points[j].y,self.points[j+1].y)
+        ymax = max(self.points[j].y,self.points[j+1].y)
+        return ymin <= y <= ymax
+
     def y(self, x, j=None, n=None):
         if j == None:
             j = 0
         if n == None:
-            n = len(self.points) - 1
+            n = len(self.lines)
         value = None
         while j < n:
-            if self.points[j].x <= x <= self.points[j+1].x:
+            if self.xin(x, j):
                 value = self.lines[j].y(x)
                 break
             j += 1
@@ -125,12 +140,10 @@ class polyline():
         if j == None:
             j = 0
         if n == None:
-            n = len(self.points) - 1
+            n = len(self.lines)
         value = None
         while j < n:
-            ymin = min(self.points[j].y,self.points[j+1].y)
-            ymax = max(self.points[j].y,self.points[j+1].y)
-            if ymin <= y <= ymax:
+            if self.yin(y, j):
                 value = self.lines[j].x(y)
                 break
             j += 1
@@ -138,34 +151,40 @@ class polyline():
             raise ValueError, "y out of range in polyline domain"
         return value
 
+    def area(self, x1, x2):
+        """
+        x1 inf limit
+        x2 sup limit
+        """
+        if x1 < self.points[0].x:
+            raise ValueError, "x values out of range in polyline domain"
+        if x2 > self.points[-1].x:
+            raise ValueError, "x values out of range in polyline domain"
+        value = 0.0
+        j = 0
+        n = len(self.lines)
+        x1pass = False
+        while j < n:
+            if self.xin(x1, j) and self.xin(x2, j):
+                value += self.lines[j].area(x1, x2)
+                break
+            if x1pass and not self.xin(x2, j):
+                value += self.lines[j].area(self.points[j].x, self.points[j+1].x)
+            if self.xin(x1, j) and not self.xin(x2, j):
+                value += self.lines[j].area(x1, self.points[j+1].x)
+                x1pass = True
+            if x1pass and self.xin(x2, j):
+                value += self.lines[j].area(self.points[j].x, x2)
+                break
+            j += 1
+        return value
+
     def addline(self, p1, p2):
         # addline at last
         self.lines.append(ln)
 
-    #~ def area(self, x1, x2):
-        #~ if x1 < self.points[0].x:
-            #~ raise ValueError, "x values out of range"
-        #~ elif x2 > self.points[-1].x:
-            #~ raise ValueError, "x values out of range"
-        #~ else:
-            #~ area = 0.0
-            #~ for j in range(len(self.points) - 1):
-                #~ if self.points[i].x <= x1 <= self.points[].x:
-                    #~ pass
-                #~ self.lines.append(line(self.points[j], self.points[j+1]))
-            #~ for p in self.points:
-                #~ self.isxin(x1) and self.isxin(x2):
-            #~ return (self.y(x1) + self.y(x1)) * (x2 - x1)/2.0
-        #~ else:
-            #~ raise ValueError, "x values out of range"
-
 def main():
-    #~ print c.isxin(5)
-    #~ f.addline(h)
-    #~ print f.lines
-    #~ print e.area(2.2, 3)
-    #~ print c.area()
-    print 'ok'
+    pass
 
 if __name__ == '__main__':
     import doctest
